@@ -1824,16 +1824,9 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 					// the call will do the resolving
 					break;
 				case FunctionType::Kind::DelegateCall:
-				{
-					ContractType const& contractType = dynamic_cast<ContractType const&>(actualType);
-					if (contractType.contractDefinition().isLibrary(), "")
-						define(IRVariable(_memberAccess).part("address")) << linkerSymbol(contractType) << "\n";
-					else
-						define(IRVariable(_memberAccess).part("address"), _memberAccess.expression());
-
+					define(IRVariable(_memberAccess).part("address")) << linkerSymbol(dynamic_cast<ContractType const&>(actualType)) << "\n";
 					define(IRVariable(_memberAccess).part("functionSelector")) << formatNumber(memberFunctionType->externalIdentifier()) << "\n";
 					break;
-				}
 				case FunctionType::Kind::External:
 				case FunctionType::Kind::Creation:
 				case FunctionType::Kind::Send:
