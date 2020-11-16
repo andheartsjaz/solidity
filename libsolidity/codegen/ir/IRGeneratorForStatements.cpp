@@ -2971,8 +2971,5 @@ string IRGeneratorForStatements::linkerSymbol(ContractType const& _libraryType) 
 {
 	solAssert(_libraryType.contractDefinition().isLibrary(), "");
 
-	string escapedFullyQualifiedName = _libraryType.contractDefinition().fullyQualifiedName();
-	boost::replace_all(escapedFullyQualifiedName, "\"", "\\\"");
-
-	return "linkersymbol(\"" + escapedFullyQualifiedName + "\")";
+	return "linkersymbol(" + util::escapeAndQuoteString(_libraryType.contractDefinition().fullyQualifiedName()) + ")";
 }
