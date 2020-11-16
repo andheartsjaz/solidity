@@ -1824,7 +1824,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 					// the call will do the resolving
 					break;
 				case FunctionType::Kind::DelegateCall:
-					define(IRVariable(_memberAccess).part("address")) << linkerSymbol(dynamic_cast<ContractType const&>(actualType)) << "\n";
+					define(IRVariable(_memberAccess).part("address"), _memberAccess.expression());
 					define(IRVariable(_memberAccess).part("functionSelector")) << formatNumber(memberFunctionType->externalIdentifier()) << "\n";
 					break;
 				case FunctionType::Kind::External:
@@ -2138,9 +2138,10 @@ void IRGeneratorForStatements::endVisit(Identifier const& _identifier)
 	}
 	else if (VariableDeclaration const* varDecl = dynamic_cast<VariableDeclaration const*>(declaration))
 		handleVariableReference(*varDecl, _identifier);
-	else if (dynamic_cast<ContractDefinition const*>(declaration))
+	else if (auto const* contract = dynamic_cast<ContractDefinition const*>(declaration))
 	{
-		// no-op
+		if (contract->isLibrary())
+			define(IRVariable(_identifier).part("address")) << linkerSymbol(*contract) << "\n";
 	}
 	else if (dynamic_cast<EventDefinition const*>(declaration))
 	{
@@ -2960,16 +2961,8 @@ void IRGeneratorForStatements::setLocation(ASTNode const& _node)
 	m_currentLocation = _node.location();
 }
 
-string IRGeneratorForStatements::linkerSymbol(TypeType const& _libraryTypeType) const
+string IRGeneratorForStatements::linkerSymbol(ContractDefinition const& _library) const
 {
-	ContractType const* contractType = dynamic_cast<ContractType const*>(_libraryTypeType.actualType());
-	solAssert(contractType, "");
-	return linkerSymbol(*contractType);
-}
-
-string IRGeneratorForStatements::linkerSymbol(ContractType const& _libraryType) const
-{
-	solAssert(_libraryType.contractDefinition().isLibrary(), "");
-
-	return "linkersymbol(" + util::escapeAndQuoteString(_libraryType.contractDefinition().fullyQualifiedName()) + ")";
+	solAssert(_library.isLibrary(), "");
+	return "linkersymbol(" + util::escapeAndQuoteString(_library.fullyQualifiedName()) + ")";
 }
